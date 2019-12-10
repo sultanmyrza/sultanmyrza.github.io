@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- VIDEO START -->
+    <video id="player" controls autoplay style="position: absolute; "></video>
+    <button id="capture" style="position: absolute; bottom: 0px; right: 0px;">
+      Capture
+    </button>
+    <canvas
+      id="canvas"
+      width="320"
+      height="240"
+      style="position: absolute; bottom: 0px;"
+    ></canvas>
+    <script>
+      const player = document.getElementById('player');
+
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      const captureButton = document.getElementById('capture');
+
+      const constraints = {
+        video: true
+      };
+
+      captureButton.addEventListener('click', () => {
+        // Draw the video frame to the canvas.
+        context.drawImage(player, 0, 0, canvas.width, canvas.height);
+      });
+
+      // Attach the video stream to the video element and autoplay.
+      navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+        player.srcObject = stream;
+      });
+    </script>
+    <!-- VIDEO END -->
+    <!-- IMAGE OUTPUT START -->
+    <img id="output" style="opacity: 0.5; position: absolute;" />
+    <script>
+      const output = document.getElementById('output');
+
+      player.oncanplay = e => {
+        const { videoWidth, videoHeight } = e.originalTarget;
+        output.setAttribute('width', videoWidth);
+        output.setAttribute('height', videoHeight);
+      };
+
+      function doSomethingWithFiles(fileList) {
+        let file = null;
+
+        for (let i = 0; i < fileList.length; i++) {
+          if (fileList[i].type.match(/^image\//)) {
+            file = fileList[i];
+            break;
+          }
+        }
+
+        if (file !== null) {
+          output.src = URL.createObjectURL(file);
+        }
+      }
+    </script>
+    <!-- IMAGE OUTPUT END -->
+
+    <!-- IMAGE PICKER START -->
+    <input
+      type="file"
+      accept="image/*"
+      id="file-input"
+      style="position: absolute; bottom: 0px;;"
+    />
+    <script>
+      const fileInput = document.getElementById('file-input');
+
+      fileInput.addEventListener('change', e =>
+        doSomethingWithFiles(e.target.files)
+      );
+    </script>
+    <!-- IMAGE PICKER END -->
+
+    <button style="position: relative;" id="opacity-dec">-10</button>
+    <button style="position: relative;" id="opacity-inc">+10</button>
+    <script>
+      const changeOpacity = value => {
+        const currentOpacity = parseFloat(output.style.opacity);
+        output.style.opacity = currentOpacity + value;
+      };
+      const opacityDecButton = document.getElementById('opacity-dec');
+      opacityDecButton.onclick = () => changeOpacity(-0.1);
+
+      const opacityIncButton = document.getElementById('opacity-inc');
+      opacityIncButton.onclick = () => changeOpacity(0.1);
+    </script>
+  </body>
+</html>
